@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Examination</title>
+
+  <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/aframe-physics-system@4.0.1/dist/aframe-physics-system.js"></script>
+  <script src="https://cdn.jsdelivr.net/gh/donmccurdy/aframe-extras@v7.0.0/dist/aframe-extras.min.js"></script>
+</head>
+
+<body>
+  <a-scene>
+    <a-assets>
+      <!-- My assets management system -->
+      <a-asset-item src="models/WallPanel/scene.gltf" id="wallpanel"></a-asset-item>
+      <a-asset-item src="models/pool.glb" id="pool"></a-asset-item>
+      <img src="textures/floor.jpg" id="floor">
+      <a-asset-item src="models/deskmess/scene.gltf" id="desk"></a-asset-item>
+
+
+      <!-- Water Shader Scripts -->
+      <script id="water-vert" type="x-shader/x-vertex">
+                uniform float uTime;
+                varying vec2 vUv;
+                varying float vWave;
+              
+                float wave(vec2 uv, vec2 dir, float speed, float freq, float amp) {
+                  return sin(dot(uv, dir) * freq + uTime * speed) * amp;
+                }
+              
+                void main() {
+                  vUv = uv;
+                  vec3 pos = position;
+                  float w = 0.0;
+                  w += wave(pos.xz, normalize(vec2(1.0, 0.8)),  1.2, 3.0, 0.06);
+                  w += wave(pos.xz, normalize(vec2(-0.7, 1.0)), 0.9, 5.0, 0.04);
+                  w += wave(pos.xz, normalize(vec2(0.3, -1.0)), 1.5, 7.0, 0.025);
+                  w += wave(pos.xz, normalize(vec2(-1.0,-0.5)), 1.1, 4.5, 0.035);
+                  pos.y += w;
+                  vWave = w;
+                  gl_Position = projectionMatrix * modelViewMatrix * vec4(pos, 1.0);
+                }
+            </script>
+
+      <script id="water-frag" type="x-shader/x-fragment">
+                uniform float uTime;
+                varying vec2 vUv;
+                varying float vWave;
+              
+                float hash(vec2 p) { return fract(sin(dot(p, vec2(127.1,311.7))) * 43758.5453); }
+                float noise(vec2 p) {
+                  vec2 i = floor(p), f = fract(p);
+                  f = f*f*(3.0-2.0*f);
+                  return mix(mix(hash(i),hash(i+vec2(1,0)),f.x), mix(hash(i+vec2(0,1)),hash(i+vec2(1,1)),f.x), f.y);
+                }
+              
+                void main() {
+                  float t = uTime;
+                  float ripple  = noise(vUv*8.0+vec2(t*.3,t*.2))*.5
+                                + noise(vUv*14.0-vec2(t*.2,t*.35))*.3
+                                + noise(vUv*5.0+vec2(-t*.15,t*.25))*.2;
+                  float caustic = pow(noise(vUv*20.0+vec2(t*.6,-t*.4)), 2.5) * 0.5;
+                  float shimmer = noise(vUv*30.0+vec2(t*1.2,t*.8));
+              
+                  vec3 color = mix(vec3(0.02,0.18,0.42), vec3(0.08,0.55,0.75),
+                                   smoothstep(-0.15,0.15,vWave));
+                  color = mix(color, vec3(0.4,0.75,0.95), ripple*0.25);
+                  color += vec3(1.0)*caustic*0.7 + vec3(0.7,0.9,1.0)*shimmer*0.12;
+              
+                  float fade = smoothstep(0.0,0.08,vUv.x)*smoothstep(1.0,0.92,vUv.x)
+                             * smoothstep(0.0,0.08,vUv.y)*smoothstep(1.0,0.92,vUv.y);
+                  gl_FragColor = vec4(color, 0.88*fade+0.07);
+                }
+            </script>
+    </a-assets>
+
+    <!-- Sky -->
+    <a-sky src="textures/sky.jpg" id="sky" rotation="0 -100 0"></a-sky>
+
+
+    <!-- <a-entity gltf-model="#house"></a-entity> -->
+    <a-entity gltf-model="url(models/house/scene.gltf)" id="house-live" position="-0.57 -22.612 0" rotation="0 0 0"
+      scale="10 10 10"></a-entity>
+
+    <!-- bathroom-->
+    <a-entity gltf-model="url(models/bathroom/scene.gltf)" id="bathroom-live" rotation="0 0 0"
+      position="8.00647 -15.39627 -95.18626" scale="7 9 5"></a-entity>
+
+
+
+    <!-- Bed -->
+    <a-entity gltf-model="url(models/bed/scene.gltf)" id="bed-live" rotation="0 180 0"
+      position="-40.01496 -14.66341 -87.11236" scale="30 30 30"></a-entity>
+
+
+    <!-- wall panel -->
+    <a-entity gltf-model="#wallpanel" id="wallpanel-live" rotation="0 90 0" position="-52.64108 -11.81149 -134.55138"
+      scale="10 8 8"></a-entity>
+
+
+    <!--pool glb-->
+    <a-entity gltf-model="#pool" id="pool-live" rotation="0 0 0" position="-56.98362 -30.83665 46.92355"
+      scale="10 10 10"></a-entity>
+
+    <!-- Pool Water plane -->
+    <a-entity id="pool-water-entity" scale="1.25 1 1.5"
+      geometry="primitive:plane; width:50; height:35; segmentsWidth:80; segmentsHeight:80" rotation="-90 90 0"
+      position="-56.88814 -20.6211 46.53201" pool-water static-body="shape:box; sphereRadius: NaN">
+    </a-entity>
+
+    <!-- Floor -->
+    <a-plane src="#floor" rotation="-90 0 0" width="100" height="100" repeat="20 20" id="floor-live"
+      material="repeat: 150 150" scale="100 100 100" position="0 -23.03395 0"></a-plane>
+
+
+    <!-- Wall to surround the house -->
+    <!-- Front -->
+    <a-entity gltf-model="url(models/wall/scene.gltf)" id="wall-live-front" rotation="0 0 0"
+      position="11.63531 -26.25263 250.19391" scale="20 20 8"></a-entity>
+    <!-- Left -->
+    <a-entity gltf-model="url(models/wall/scene.gltf)" id="wall-live-left" rotation="0 90 0"
+      position="-241.73326 -25.43726 -159.23296" scale="30 20 8"></a-entity>
+    <!-- Right -->
+    <a-entity gltf-model="url(models/wall/scene.gltf)" id="wall-live-right" rotation="0 90 0"
+      position="193.7512 -24.3576 -161.15821" scale="30 20 8"></a-entity>
+    <!-- Back -->
+    <a-entity gltf-model="url(models/wall/scene.gltf)" id="wall-live-back" rotation="0 0 0"
+      position="8.67703 -25.6803 -408.71618" scale="20 20 8"></a-entity>
+
+    <!-- Sofa -->
+    <a-entity gltf-model="url(Models/sofa.glb)" id="sofa-live" rotation="0 -90 0"
+      position="-34.90007 -13.32144 -137.71777" scale="15 15 15"></a-entity>
+
+
+    <!-- Car -->
+    <a-entity gltf-model="url(models/car/scene.gltf)" id="car-live" rotation="0 0 0"
+      position="50.2746 -14.90168 -65.10058" scale="10 10 10"></a-entity>
+
+    <!-- Lights -->
+    <a-light type="ambient" intensity="0.6"></a-light>
+    <!-- Directional light positioned to reflect in the pool from the starting view -->
+    <a-light type="directional" position="-150 50 -50" intensity="1.2" target="#pool-water-entity"></a-light>
+    <a-light type="point" position="-56 10 46" intensity="0.8" distance="50" decay="2"></a-light>
+
+    <!-- Camera / Rig -->
+    <a-entity id="rig" movement-controls="fly: true; speed: 0.5" position="-66.302 1.328 -120.617">
+      <a-entity camera look-controls position="0 1.6 0">
+        <a-cursor color="#4CC3D9" fuse="false"></a-cursor>
+      </a-entity>
+    </a-entity>
+  </a-scene>
+  <script>
+    AFRAME.registerComponent('pool-water', {
+      init() {
+        const uniforms = { uTime: { value: 0 } };
+        const mat = new THREE.ShaderMaterial({
+          uniforms,
+          vertexShader: document.getElementById('water-vert').textContent,
+          fragmentShader: document.getElementById('water-frag').textContent,
+          transparent: true, side: THREE.DoubleSide, depthWrite: false
+        });
+        this._uniforms = uniforms;
+        const apply = () => { const m = this.el.getObject3D('mesh'); if (m) m.material = mat; };
+        this.el.addEventListener('object3dset', apply);
+        apply();
+      },
+      tick(time) { if (this._uniforms) this._uniforms.uTime.value = time * 0.001; }
+    });
+  </script>
+</body>
+
+</html>

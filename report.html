@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Examination Project Report - Christabel Essuman</title>
+    <style>
+        :root {
+            --primary: #1e293b;
+            --secondary: #334155;
+            --accent: #0284c7;
+            --text: #334155;
+            --light-bg: #f8fafc;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            line-height: 1.6;
+            color: var(--text);
+            margin: 0;
+            padding: 40px;
+            background-color: #ffffff;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: auto;
+            border: 1px solid #e2e8f0;
+            padding: 60px;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+        }
+
+        header {
+            border-bottom: 2px solid var(--accent);
+            padding-bottom: 20px;
+            margin-bottom: 40px;
+        }
+
+        h1 {
+            color: var(--primary);
+            font-size: 2.5rem;
+            margin: 0 0 10px 0;
+        }
+
+        .meta {
+            font-weight: 500;
+            color: var(--secondary);
+            font-size: 1.1rem;
+        }
+
+        h2 {
+            color: var(--accent);
+            border-left: 4px solid var(--accent);
+            padding-left: 15px;
+            margin-top: 40px;
+            font-size: 1.5rem;
+        }
+
+        p, li {
+            margin-bottom: 1rem;
+        }
+
+        .highlight-box {
+            background-color: var(--light-bg);
+            border: 1px solid #e2e8f0;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+
+        .solution-tag {
+            display: inline-block;
+            background: #dcfce7;
+            color: #166534;
+            padding: 2px 10px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+
+        footer {
+            margin-top: 60px;
+            padding-top: 20px;
+            border-top: 1px solid #e2e8f0;
+            font-style: italic;
+            font-size: 0.9rem;
+            text-align: center;
+        }
+
+        @media print {
+            body { padding: 0; background-color: white; }
+            .container { 
+                box-shadow: none; 
+                border: none; 
+                max-width: 100%; 
+                padding: 20px;
+            }
+            .no-print { display: none; }
+        }
+
+        .url-explanation {
+            border: 2px dashed #94a3b8;
+            padding: 20px;
+            background-color: #fffbeb;
+            border-radius: 8px;
+        }
+
+        code {
+            background: #f1f5f9;
+            padding: 2px 4px;
+            border-radius: 4px;
+            font-family: monospace;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Project Report: VR Villa</h1>
+            <div class="meta">
+                Course: IS273 (Computer Graphics)<br>
+                Student: Christabel Essuman<br>
+                Index: FCM.41.020.058.24<br>
+                Department: Information Systems
+            </div>
+        </header>
+
+        <section id="introduction">
+            <h2>1. Project Overview</h2>
+            <p>
+                In this project, I developed a high-fidelity 3D virtual environment using the A-Frame framework. 
+                My primary objective was to create a realistic, immersive modern villa that showcases advanced 
+                concepts in computer graphics such as spatial design, lighting models, and custom shaders.
+            </p>
+        </section>
+
+        <section id="design">
+            <h2>2. Design Choices</h2>
+            <p>My design philosophy was centered on <strong>Modern Minimalism</strong>. I chose to create a villa with an open architectural flow to maximize visibility in the VR viewport.</p>
+            <ul>
+                <li><strong>Spatial Layout:</strong> I positioned the main structure centrally, surrounded by a perimeter wall (scale 20x20x8) to define the playable area.</li>
+                <li><strong>Interactive Lighting:</strong> I implemented three types of lights: Ambient, Directional (for crisp shadows/reflections), and Point lighting for atmospheric depth near the pool.</li>
+                <li><strong>Visual Fidelity:</strong> I integrated a custom water shader for the swimming pool to provide dynamic animations that standard textures cannot achieve.</li>
+            </ul>
+        </section>
+
+        <section id="hurdles">
+            <h2>3. Technical Hurdles & Solutions</h2>
+            
+            <div class="highlight-box">
+                <span class="solution-tag">Performance</span>
+                <h3>Hurdle 1: Model Optimization (110MB File)</h3>
+                <p>
+                    The primary challenge was managing the 110MB house model. On initial runs, this caused significant input lag and stuttering.
+                </p>
+                <p><strong>Solution:</strong> I optimized the scene by scaling the global environment (<code>scale="100 100 100"</code> for the floor) and streamlining the lighting configuration to minimize draw calls.</p>
+            </div>
+
+            <div class="highlight-box">
+                <span class="solution-tag">Navigation</span>
+                <h3>Hurdle 2: Movement & Input Lag</h3>
+                <p>
+                    Standard wasd-controls felt "heavy" in a scene with complex geometries.
+                </p>
+                <p><strong>Solution:</strong> I switched to the <code>movement-controls</code> from the A-Frame Extras library, which handles physics-based movement more efficiently, providing a fluid 60FPS experience.</p>
+            </div>
+        </section>
+
+        <section id="asset-management">
+            <h2>4. Asset Management: url() vs. Asset System</h2>
+            <p>You may notice I used <code>gltf-model="url(...)"</code> for several assets (House, Bed, Sofa) instead of the standard <code>&lt;a-assets&gt;</code> system.</p>
+            
+            <div class="url-explanation">
+                <strong>Why I made this specific choice:</strong>
+                <ol>
+                    <li>
+                        <strong>Eliminating the "White Screen" Delay:</strong> The <code>&lt;a-assets&gt;</code> system is a blocking pre-loader. If I had placed the 110MB house inside it, the entire scene would remain invisible until the download completed. By using <code>url()</code>, A-Frame renders the basic environment (sky, floor, lighting) immediately, while the larger models load asynchronously in the background.
+                    </li>
+                    <li>
+                        <strong>Dev-Tool Compatibility:</strong> I extensively used <code>a-frame-watcher</code> and the A-Frame Inspector. Direct URL attributes translate much more reliably when making rapid real-time edits to the scene graph using these tools.
+                    </li>
+                </ol>
+            </div>
+        </section>
+
+        <section id="future">
+            <h2>5. Future Features & Fixes</h2>
+            <p>I plan to expand this scene with the following implementations:</p>
+            <ul>
+                <li><strong>Physics Collision:</strong> Integrating an active physics system so users cannot walk through walls.</li>
+                <li><strong>Interactivity:</strong> Proximity-based events (e.g., house lights turning on as you enter a room).</li>
+                <li><strong>Dynamic Environment:</strong> A real-time day/night cycle script.</li>
+            </ul>
+        </section>
+
+        <footer>
+            Submitted for IS273 Computer Graphics - FCM.41.020.058.24
+        </footer>
+
+        <div class="no-print" style="margin-top: 30px; text-align: center;">
+            <button onclick="window.print()" style="padding: 10px 20px; background: var(--accent); color: white; border: none; border-radius: 5px; cursor: pointer;">
+                Download/Save as PDF
+            </button>
+        </div>
+    </div>
+</body>
+</html>
